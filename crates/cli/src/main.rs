@@ -235,7 +235,7 @@ impl Log for JsonLog {
     }
 
     fn finish(&mut self, target: &str, info: &jtd_codegen::codegen::CodegenInfo) {
-        let mut entry = self.0.get_mut(target).unwrap();
+        let entry = self.0.get_mut(target).unwrap();
 
         entry.root_name = info.root_name.clone();
         entry.definition_names = info.definition_names.clone();
