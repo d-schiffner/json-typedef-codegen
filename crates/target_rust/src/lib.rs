@@ -79,7 +79,12 @@ impl jtd_codegen::target::Target for Target {
         expr: target::Expr,
     ) -> String {
         if let Some(s) = metadata.get("rustType").and_then(|v| v.as_str()) {
-            return s.into();
+            match expr {
+                target::Expr::NullableOf(sub_expr, _) => {
+                    return format!("Option<{}>", sub_expr);
+                }
+                _ => { return s.into(); }
+            }
         }
 
         match expr {
@@ -120,23 +125,9 @@ impl jtd_codegen::target::Target for Target {
                     .insert("HashMap".to_owned());
 
                 format!("HashMap<String, {}>", sub_expr)
-            }
-
-            // TODO: A Box here is necessary because otherwise a recursive data
-            // structure may fail to compile, such as in the geojson test case.
-            //
-            // A more "proper" fix to this problem would be to have a cyclical
-            // reference detector, and insert Box<T> only if it's necessary to
-            // break a cyclic dependency. It's unclear how much of a problem
-            // this is in the real world.
-            target::Expr::NullableOf(sub_expr, false) => {
-                println!("NullableOf {}" , sub_expr);
-                format!("Option<{}>", sub_expr)
             },
-            target::Expr::NullableOf(sub_expr, true) => {
-                println!("NullableOf Box<{}>", sub_expr);
-                format!("Option<Box<{}>>", sub_expr)
-            },
+            target::Expr::NullableOf(sub_expr, false) => format!("Option<{}>", sub_expr),
+            target::Expr::NullableOf(sub_expr, true) => format!("Option<Box<{}>>", sub_expr),
         }
     }
 

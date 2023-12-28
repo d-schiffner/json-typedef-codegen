@@ -8,7 +8,6 @@ use crate::target::{
 };
 use ast::{Ast, SchemaAst};
 use jtd::Schema;
-use jtd::form::Ref;
 use namespace::Namespace;
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -208,8 +207,6 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
                     .expr(&mut file_data.state, metadata, Expr::DictOf(sub_expr))
             }
             Ast::NullableOf { metadata, type_ } => {
-
-                println!("meta: {:?} -> {:?}", metadata, *type_);
                 let sub_name = self.ast_name(global_namespace, &type_);
                 let has_ref = self.has_ref(&type_);
                 let sub_expr = self.codegen_ast(global_namespace, file_data, sub_name, *type_)?;
