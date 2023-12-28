@@ -126,7 +126,7 @@ impl jtd_codegen::target::Target for Target {
 
                 format!("Dict[str, {}]", sub_expr)
             }
-            target::Expr::NullableOf(sub_expr) => {
+            target::Expr::NullableOf(sub_expr, _) => {
                 state
                     .imports
                     .entry("typing".into())

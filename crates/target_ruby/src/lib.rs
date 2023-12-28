@@ -116,7 +116,7 @@ impl jtd_codegen::target::Target for Target {
             target::Expr::DictOf(sub_expr) => {
                 format!("Hash[String, {}]", sub_expr)
             }
-            target::Expr::NullableOf(sub_expr) => sub_expr,
+            target::Expr::NullableOf(sub_expr, _) => sub_expr,
         }
     }
 

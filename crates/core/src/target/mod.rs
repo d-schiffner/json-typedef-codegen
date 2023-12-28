@@ -86,7 +86,7 @@ pub enum Expr {
     Timestamp,
     ArrayOf(String),
     DictOf(String),
-    NullableOf(String),
+    NullableOf(String, bool),
 }
 
 #[derive(Debug)]

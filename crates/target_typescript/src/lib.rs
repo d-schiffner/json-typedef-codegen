@@ -91,7 +91,7 @@ impl jtd_codegen::target::Target for Target {
             target::Expr::Timestamp => "string".into(),
             target::Expr::ArrayOf(sub_expr) => format!("{}[]", sub_expr),
             target::Expr::DictOf(sub_expr) => format!("{{ [key: string]: {} }}", sub_expr),
-            target::Expr::NullableOf(sub_expr) => format!("({} | null)", sub_expr),
+            target::Expr::NullableOf(sub_expr, _) => format!("({} | null)", sub_expr),
         }
     }
 

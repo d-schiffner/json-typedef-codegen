@@ -124,7 +124,7 @@ impl jtd_codegen::target::Target for Target {
                 state.imports.insert("System.Collections.Generic".into());
                 format!("IDictionary<string, {}>", sub_expr)
             }
-            target::Expr::NullableOf(sub_expr) => format!("{}?", sub_expr),
+            target::Expr::NullableOf(sub_expr, _) => format!("{}?", sub_expr),
         }
     }
 

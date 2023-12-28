@@ -124,7 +124,7 @@ impl jtd_codegen::target::Target for Target {
                 state.imports.insert("java.util.Map".into());
                 format!("Map<String, {}>", sub_expr)
             }
-            target::Expr::NullableOf(sub_expr) => sub_expr, // everything is already nullable
+            target::Expr::NullableOf(sub_expr, _) => sub_expr, // everything is already nullable
         }
     }
 

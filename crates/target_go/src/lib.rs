@@ -113,7 +113,7 @@ impl jtd_codegen::target::Target for Target {
             }
             target::Expr::ArrayOf(sub_expr) => format!("[]{}", sub_expr),
             target::Expr::DictOf(sub_expr) => format!("map[string]{}", sub_expr),
-            target::Expr::NullableOf(sub_expr) => format!("*{}", sub_expr),
+            target::Expr::NullableOf(sub_expr, _) => format!("*{}", sub_expr),
         }
     }
 

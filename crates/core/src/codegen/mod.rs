@@ -8,6 +8,7 @@ use crate::target::{
 };
 use ast::{Ast, SchemaAst};
 use jtd::Schema;
+use jtd::form::Ref;
 use namespace::Namespace;
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -50,6 +51,28 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
             out_dir,
             strategy: target.strategy(),
             definition_names: BTreeMap::new(),
+        }
+    }
+
+    pub fn has_ref(&self, ast: &Ast) -> bool {
+        match ast {
+            Ast::Ref {..} => true,
+            Ast::ArrayOf { type_, .. } => self.has_ref(&*type_),
+            Ast::DictOf { type_, .. } => self.has_ref(&*type_),
+            Ast::NullableOf { type_, .. } => self.has_ref(&*type_),
+            Ast::Alias { type_, .. } => self.has_ref(&*type_),
+            Ast::Struct { fields, ..  } => {
+                fields.iter().any(|x| { self.has_ref(&x.type_) })
+            },
+            Ast::Discriminator { variants, .. } => {
+                variants.iter().any(|variant| {
+                    variant.fields.iter().any(|field| {
+                        self.has_ref(&field.type_)
+                    })
+                })
+            }
+
+            _ => false
         }
     }
 
@@ -185,11 +208,14 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
                     .expr(&mut file_data.state, metadata, Expr::DictOf(sub_expr))
             }
             Ast::NullableOf { metadata, type_ } => {
+
+                println!("meta: {:?} -> {:?}", metadata, *type_);
                 let sub_name = self.ast_name(global_namespace, &type_);
+                let has_ref = self.has_ref(&type_);
                 let sub_expr = self.codegen_ast(global_namespace, file_data, sub_name, *type_)?;
 
                 self.target
-                    .expr(&mut file_data.state, metadata, Expr::NullableOf(sub_expr))
+                    .expr(&mut file_data.state, metadata, Expr::NullableOf(sub_expr, has_ref))
             }
 
             // Now the "item-like" node types. For these, the target is given a

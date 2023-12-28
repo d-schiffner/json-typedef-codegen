@@ -129,7 +129,14 @@ impl jtd_codegen::target::Target for Target {
             // reference detector, and insert Box<T> only if it's necessary to
             // break a cyclic dependency. It's unclear how much of a problem
             // this is in the real world.
-            target::Expr::NullableOf(sub_expr) => format!("Option<Box<{}>>", sub_expr),
+            target::Expr::NullableOf(sub_expr, false) => {
+                println!("NullableOf {}" , sub_expr);
+                format!("Option<{}>", sub_expr)
+            },
+            target::Expr::NullableOf(sub_expr, true) => {
+                println!("NullableOf Box<{}>", sub_expr);
+                format!("Option<Box<{}>>", sub_expr)
+            },
         }
     }
 
