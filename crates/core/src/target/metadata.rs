@@ -18,3 +18,10 @@ pub fn enum_variant_description<'a>(metadata: &'a Metadata, value: &'a str) -> &
         .and_then(Value::as_str)
         .unwrap_or_default()
 }
+
+pub fn default_value(metadata: &Metadata) -> &str {
+    metadata
+        .get("default")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+}

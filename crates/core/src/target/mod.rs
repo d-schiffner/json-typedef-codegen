@@ -137,7 +137,7 @@ pub struct EnumMember {
     pub json_value: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Field {
     pub metadata: Metadata,
     pub name: String,

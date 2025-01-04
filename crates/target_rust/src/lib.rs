@@ -170,7 +170,32 @@ impl jtd_codegen::target::Target for Target {
                 None
             }
 
-            target::Item::Postamble => None,
+            target::Item::Postamble => {
+                if !state.default_getter.is_empty() {
+                    writeln!(out, "")?;
+                }
+                for getter in &state.default_getter {
+                    if !getter.field.optional {
+                        println!("Ignoring non-optional field {}", getter.field.name);
+                        continue;
+                    }
+                    if getter.value.is_object() {
+                        println!("Unable to use default value type 'object' for field {}", getter.field.name);
+                        continue;
+                    }
+                    //convert
+                    let body = match &getter.value {
+                        Value::Bool(value) => value.to_string(),
+                        Value::String(value) => format!("String::from(\"{}\")", value),
+                        Value::Number(value) => value.to_string(),
+                        Value::Array(elements) => format!("vec!{{{}}}", elements.iter().map(|e| e.to_string()).collect::<Vec<String>>().join(", ")),
+                        _ => panic!("Not implemented")
+                    };
+                    writeln!(out, "fn get_{}_default_{}() -> {} {{ Some({}) }}", getter.name.to_lowercase(), getter.field.name.to_lowercase(), getter.field.type_, body)?;
+                }
+
+                None
+            },
 
             target::Item::Alias {
                 metadata,
@@ -201,6 +226,9 @@ impl jtd_codegen::target::Target for Target {
 
                 writeln!(out)?;
                 write!(out, "{}", description(&metadata, 0))?;
+                if let Some(s) = metadata.get("default").and_then(|v| v.as_str()) {
+                    writeln!(out, "#[serde(default = {:?})]", s)?;
+                }
                 writeln!(out, "#[derive(Serialize, Deserialize, Clone)]")?;
                 writeln!(out, "pub enum {} {{", name)?;
 
@@ -284,7 +312,7 @@ impl jtd_codegen::target::Target for Target {
                     writeln!(out, "pub struct {} {{}}", name)?;
                 } else {
                     writeln!(out, "pub struct {} {{", name)?;
-                    for (index, field) in fields.into_iter().enumerate() {
+                    for (index, field) in fields.iter().enumerate() {
                         if index != 0 {
                             writeln!(out)?;
                         }
@@ -296,6 +324,15 @@ impl jtd_codegen::target::Target for Target {
                                 out,
                                 "    #[serde(skip_serializing_if = \"Option::is_none\")]"
                             )?;
+                            if let Some(s) = field.metadata.get("default") {
+                                let getter = DefaultGetter {
+                                    value: s.clone(),
+                                    name: name.clone(),
+                                    field: field.clone()
+                                };
+                                writeln!(out, "{}", serde_default_getter(&getter, 1))?;
+                                state.default_getter.push(getter);
+                            }
                         }
                         writeln!(out, "    pub {}: {},", field.name, field.type_)?;
                     }
@@ -384,6 +421,15 @@ impl jtd_codegen::target::Target for Target {
                                 out,
                                 "    #[serde(skip_serializing_if = \"Option::is_none\")]"
                             )?;
+                            if field.metadata.contains_key("default") {
+                                let getter = DefaultGetter {
+                                    value: field.metadata.get("default").unwrap().to_owned(),
+                                    name: name.to_owned(),
+                                    field: field.to_owned()
+                                };
+                                writeln!(out, "{}", serde_default_getter(&getter, 1))?;
+                                state.default_getter.push(getter);
+                            }
                         }
                         writeln!(out, "    pub {}: {},", field.name, field.type_)?;
                     }
@@ -397,9 +443,16 @@ impl jtd_codegen::target::Target for Target {
     }
 }
 
+struct DefaultGetter {
+    value: Value,
+    name: String,
+    field: target::Field,
+}
+
 #[derive(Default)]
 pub struct FileState {
     imports: BTreeMap<String, BTreeSet<String>>,
+    default_getter: Vec<DefaultGetter>,
 }
 
 fn description(metadata: &BTreeMap<String, Value>, indent: usize) -> String {
@@ -420,6 +473,11 @@ fn enum_variant_description(
 fn doc(ident: usize, s: &str) -> String {
     let prefix = "    ".repeat(ident);
     jtd_codegen::target::fmt::comment_block("", &format!("{}/// ", prefix), "", s)
+}
+
+fn serde_default_getter(getter: &DefaultGetter, indent: usize) -> String {
+    let prefix = "    ".repeat(indent);
+    format!("{}#[serde(default = \"get_{}_default_{}\")]", prefix, getter.name.to_lowercase(), getter.field.name.to_lowercase())
 }
 
 #[cfg(test)]
