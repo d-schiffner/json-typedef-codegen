@@ -238,7 +238,7 @@ impl jtd_codegen::target::Target for Target {
                 writeln!(out, "    return data.to_json_data()")?;
                 writeln!(out)?;
                 writeln!(out, "def _parse_rfc3339(s: str) -> datetime:")?;
-                writeln!(out, "    datetime_re = '^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})[tT](\\d{{2}}):(\\d{{2}}):(\\d{{2}})(\\.\\d+)?([zZ]|((\\+|-)(\\d{{2}}):(\\d{{2}})))$'")?;
+                writeln!(out, "    datetime_re = r'^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})[tT](\\d{{2}}):(\\d{{2}}):(\\d{{2}})(\\.\\d+)?([zZ]|((\\+|-)(\\d{{2}}):(\\d{{2}})))$'")?;
                 writeln!(out, "    match = re.match(datetime_re, s)")?;
                 writeln!(out, "    if not match:")?;
                 writeln!(
@@ -397,8 +397,8 @@ impl jtd_codegen::target::Target for Target {
                 for field in &fields {
                     writeln!(
                         out,
-                        "            _from_json_data({}, data.get({:?})),",
-                        field.type_, field.json_name
+                        "            _from_json_data({}, data.get({:?},{:?})),",
+                        field.type_, field.json_name, default_value(&field.metadata)
                     )?;
                 }
                 writeln!(out, "        )")?;
@@ -514,8 +514,8 @@ impl jtd_codegen::target::Target for Target {
                 for field in &fields {
                     writeln!(
                         out,
-                        "            _from_json_data({}, data.get({:?})),",
-                        field.type_, field.json_name
+                        "            _from_json_data({}, data.get({:?}, {:?})),",
+                        field.type_, field.json_name, default_value(&field.metadata)
                     )?;
                 }
                 writeln!(out, "        )")?;
@@ -557,6 +557,10 @@ pub struct FileState {
 
 fn description(metadata: &BTreeMap<String, Value>, indent: usize) -> String {
     doc(indent, jtd_codegen::target::metadata::description(metadata))
+}
+
+fn default_value(metadata: &BTreeMap<String, Value>) -> String {
+    jtd_codegen::target::metadata::default_value(metadata).into()
 }
 
 fn enum_variant_description(
