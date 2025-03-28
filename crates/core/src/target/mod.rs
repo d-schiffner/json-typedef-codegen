@@ -143,6 +143,7 @@ pub struct Field {
     pub name: String,
     pub json_name: String,
     pub optional: bool,
+    pub default: bool,
     pub type_: String,
 }
 

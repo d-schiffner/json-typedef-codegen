@@ -289,6 +289,7 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
                     let mut struct_fields = Vec::new(); // fields to pass to target
                     for field in fields {
                         let field_name = field_names.get(field.name);
+                        let has_default = field.metadata.contains_key("default".into());
 
                         let sub_name = self.ast_name(global_namespace, &field.type_);
                         let sub_ast =
@@ -299,6 +300,7 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
                             name: field_name,
                             json_name: field.json_name,
                             optional: field.optional,
+                            default: has_default,
                             type_: sub_ast,
                         });
                     }
@@ -391,6 +393,7 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
                         let mut variant_fields = Vec::new();
                         for field in variant.fields {
                             let field_name = variant_field_names.get(field.name);
+                            let has_default = field.metadata.contains_key("default".into());
 
                             let sub_name = self.ast_name(global_namespace, &field.type_);
                             let sub_ast = self.codegen_ast(
@@ -405,6 +408,7 @@ impl<'a, T: Target> CodeGenerator<'a, T> {
                                 name: field_name,
                                 json_name: field.json_name,
                                 optional: field.optional,
+                                default: has_default,
                                 type_: sub_ast,
                             });
                         }

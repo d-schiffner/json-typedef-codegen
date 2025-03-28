@@ -126,8 +126,8 @@ impl jtd_codegen::target::Target for Target {
 
                 format!("HashMap<String, {}>", sub_expr)
             },
-            target::Expr::NullableOf(sub_expr, false) => format!("Option<{}>", sub_expr),
-            target::Expr::NullableOf(sub_expr, true) => format!("Option<Box<{}>>", sub_expr),
+            target::Expr::NullableOf(sub_expr, _) => format!("Option<{}>", sub_expr),
+            //target::Expr::NullableOf(sub_expr, true) => format!("Option<Box<{}>>", sub_expr),
         }
     }
 
